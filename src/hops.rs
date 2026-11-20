@@ -99,6 +99,8 @@ pub fn plan(hop: &DesiredHop, inventory: &Inventory) -> Result<Plan, String> {
                                 egress.branch_id.clone(),
                                 Destination::Device {
                                     uid: uid.to_string(),
+                                    delay_ms: None,
+                                    latency_offset_ms: None,
                                 },
                             )
                         })
@@ -978,6 +980,7 @@ mod tests {
                 destination: destination.clone(),
                 volume: 1.0,
                 status: flowing(bytes),
+                receiver_volume: None,
                 local_description: None,
             })
             .collect();
@@ -1027,7 +1030,9 @@ mod tests {
             [(
                 "filip".to_string(),
                 Destination::Device {
-                    uid: "BuiltInSpeakerDevice".into()
+                    uid: "BuiltInSpeakerDevice".into(),
+                    delay_ms: None,
+                    latency_offset_ms: None,
                 }
             )]
         );
@@ -1123,6 +1128,8 @@ mod tests {
         let mut wanted = plan(&hop, &inventory()).unwrap();
         let added = Destination::Device {
             uid: "elsewhere".into(),
+            delay_ms: None,
+            latency_offset_ms: None,
         };
         wanted.routes.push(("new".into(), added.clone()));
         let plans = BTreeMap::from([(hop.id.clone(), Ok(wanted))]);

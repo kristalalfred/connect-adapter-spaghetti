@@ -1589,7 +1589,7 @@ dependencies = [
 [[package]]
 name = "spaghetti-common"
 version = "0.1.0"
-source = "git+https://github.com/kristalalfred/spaghetti?branch=master#a2b845b078a4649913ce9b9c83e4fcba2e6dba70"
+source = "git+https://github.com/kristalalfred/spaghetti?branch=master#8874fd23539c1e86898bcdb380b382c4c8f6b61a"
 dependencies = [
  "serde",
  "serde_json",
