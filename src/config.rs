@@ -70,7 +70,7 @@ node:
 
     const INSTALLED: &str = r"
 id: alfreds-mac
-southbound_url: http://192.168.1.10:29081
+southbound_url: http://192.168.1.10:29080
 southbound_token: alfreds-mac.0.c0ffee
 listen: 127.0.0.1:8092
 topology:
@@ -82,7 +82,7 @@ topology:
 ";
 
     fn installed_config(relay_network: &str) -> NodeConfig {
-        installed_config_for("http://192.168.1.10:29081", relay_network)
+        installed_config_for("http://192.168.1.10:29080", relay_network)
     }
 
     fn run_installer(placeholders: &[(&str, &str)], call: &str, args: &[&str]) -> String {
@@ -147,7 +147,7 @@ topology:
         assert_eq!(installed_config_for(url, "").southbound_url, url);
     }
 
-    const BENCH: &str = "http://alfreds-macbook-pro.local:29081";
+    const BENCH: &str = "http://alfreds-macbook-pro.local:29080";
 
     fn southbound_chosen(url: &str, address: &str, this_mac: &str, answers: bool) -> String {
         let stubs = format!("scutil() {{ echo {this_mac}; }}\ncurl() {{ {answers}; }}");
@@ -165,7 +165,7 @@ topology:
     fn the_bench_macs_own_node_reaches_southbound_over_loopback() {
         assert_eq!(
             southbound_chosen(BENCH, "10.4.0.86", "Alfreds-MacBook-Pro", true),
-            "http://127.0.0.1:29081"
+            "http://127.0.0.1:29080"
         );
     }
 
@@ -181,7 +181,7 @@ topology:
     fn a_mac_that_cannot_reach_the_bench_by_name_dials_its_address() {
         assert_eq!(
             southbound_chosen(BENCH, "10.4.0.86", "Ludvigs-MacBook-Pro", false),
-            "http://10.4.0.86:29081"
+            "http://10.4.0.86:29080"
         );
     }
 

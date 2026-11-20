@@ -70,7 +70,7 @@ installer port="29097" relay_network="":
     cargo build --release --quiet
     address=""
     if [ -z "$southbound" ]; then
-        southbound="http://$(scutil --get LocalHostName | tr '[:upper:]' '[:lower:]').local:29081"
+        southbound="http://$(scutil --get LocalHostName | tr '[:upper:]' '[:lower:]').local:29080"
         address="$lan"
         CONNECT_SOUTHBOUND_KEY="${CONNECT_SOUTHBOUND_KEY:-bench-southbound-key-for-local-use-only}"
     fi
