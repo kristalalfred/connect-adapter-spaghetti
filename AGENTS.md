@@ -10,8 +10,8 @@ changes. Tests live beside the code in `#[cfg(test)]` modules. Open work lives i
 
 ## Boundaries
 
-- The adapter links two independent projects. open-weave's southbound protocol
-  comes from `weave-core` and its uplink observation from `weave-reach`.
+- The adapter links two independent projects. open-connect's southbound protocol
+  comes from `connect-core` and its uplink observation from `connect-reach`.
   spaghetti's IPC protocol comes from `spaghetti-common`. Do not redefine either
   protocol here.
 

@@ -10,19 +10,19 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result};
 use axum::{Json, Router, routing::get};
 use clap::Parser;
-use reqwest::{Client, RequestBuilder, StatusCode};
-use spaghetti_common::ipc_protocol::{Destination, RouteInfo, SourceInfo};
-use tokio::task::JoinHandle;
-use weave_core::auth::{self, Token};
-use weave_core::logging::ErrorChain;
-use weave_core::{
+use connect_core::auth::{self, Token};
+use connect_core::logging::ErrorChain;
+use connect_core::{
     AudioCodec, AudioConstraint, Container, DeclaredNode, DesiredHop, FormatConstraint,
     HopEndpointClass, HopProfile, HopStatus, LinkClass, LinkDescription, LocalEnd, MediaBehavior,
     NodeCapabilities, NodeDescriptor, NodeHeartbeat, NodeRegistration, NodeStatus,
     PROTOCOL_VERSION, RoleSet, SessionDescription, SignallingExchange, SignallingReply, Transport,
     TransportClass,
 };
-use weave_reach::{Reach, STUN_SERVERS};
+use connect_reach::{Reach, STUN_SERVERS};
+use reqwest::{Client, RequestBuilder, StatusCode};
+use spaghetti_common::ipc_protocol::{Destination, RouteInfo, SourceInfo};
+use tokio::task::JoinHandle;
 
 use config::AdapterConfig;
 use daemon::{SpaghettiClient, SpaghettiError};
@@ -34,19 +34,19 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Debug, Parser)]
 #[command(
-    name = "weave-adapter-spaghetti",
+    name = "connect-adapter-spaghetti",
     version,
-    about = "open-weave southbound adapter for spaghetti"
+    about = "open-connect southbound adapter for spaghetti"
 )]
 struct Args {
     #[arg(help = "Path to the adapter config file (YAML)")]
-    #[arg(long, env = "WEAVE_NODE_CONFIG", hide_env_values = true)]
+    #[arg(long, env = "CONNECT_NODE_CONFIG", hide_env_values = true)]
     config: PathBuf,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    weave_core::logging::init();
+    connect_core::logging::init();
 
     let args = Args::parse();
     let config = AdapterConfig::load(&args.config)?;
@@ -75,7 +75,7 @@ async fn main() -> Result<()> {
     );
 
     let result = tokio::select! {
-        result = weave_core::shutdown::signal() => {
+        result = connect_core::shutdown::signal() => {
             result.context("waiting for shutdown signal")?;
             tracing::info!("spaghetti adapter shutting down");
             Ok(())
@@ -214,8 +214,8 @@ fn spawn_health_server(addr: String) -> JoinHandle<Result<()>> {
     })
 }
 
-async fn health() -> Json<weave_core::Health> {
-    Json(weave_core::Health::OK)
+async fn health() -> Json<connect_core::Health> {
+    Json(connect_core::Health::OK)
 }
 
 fn profiles() -> Vec<HopProfile> {
@@ -683,7 +683,7 @@ mod tests {
     #[tokio::test]
     async fn a_refused_route_neither_tears_down_its_source_nor_holds_back_the_next() {
         let webrtc = Destination::WebRtc(WebRtcPeer {
-            link: "weave-music-receiver-anna".into(),
+            link: "connect-music-receiver-anna".into(),
             generation: 7,
             role: PeerRole::Offer,
             stun: Vec::new(),
@@ -708,7 +708,7 @@ mod tests {
                 ("filip".into(), srt.clone()),
             ],
         };
-        let hop_id = "weave-music-sender";
+        let hop_id = "connect-music-sender";
         let plans = BTreeMap::from([(hop_id.to_string(), Ok(plan.clone()))]);
         let (spaghetti, daemon) = daemon::fake::daemon(vec![
             json!({ "SourceCreated": { "source_id": 4 } }),
@@ -784,7 +784,7 @@ node:
             "/Users/alfred",
         );
         let node = descriptor(&config, &inventory, NodeStatus::Ready);
-        assert!(weave_core::validate_node(&node).is_empty());
+        assert!(connect_core::validate_node(&node).is_empty());
         assert!(node.capabilities.offers_local(LocalEnd::Input));
         assert!(node.capabilities.offers_local(LocalEnd::Output));
         assert_eq!(node.inputs[0].id, "music");

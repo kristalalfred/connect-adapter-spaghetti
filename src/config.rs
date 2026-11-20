@@ -2,8 +2,8 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use anyhow::{Context, Result};
+use connect_core::NodeConfig;
 use serde::Deserialize;
-use weave_core::NodeConfig;
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -53,7 +53,7 @@ impl AdapterConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use weave_core::{NetworkAttachment, NetworkListeners};
+    use connect_core::{NetworkAttachment, NetworkListeners};
 
     const MINIMAL: &str = r"
 node:
@@ -143,7 +143,7 @@ topology:
 
     #[test]
     fn an_installer_for_a_public_southbound_points_the_node_at_it() {
-        let url = "https://weave-southbound.example.com:8443";
+        let url = "https://connect-southbound.example.com:8443";
         assert_eq!(installed_config_for(url, "").southbound_url, url);
     }
 
@@ -187,7 +187,7 @@ topology:
 
     #[test]
     fn a_southbound_without_an_address_is_kept_when_it_does_not_answer() {
-        let url = "https://weave-southbound.example.com:8443";
+        let url = "https://connect-southbound.example.com:8443";
         assert_eq!(
             southbound_chosen(url, "", "Ludvigs-MacBook-Pro", false),
             url

@@ -1,7 +1,7 @@
-# weave-adapter-spaghetti
+# connect-adapter-spaghetti
 
 Joins a Mac running [spaghetti](https://github.com/kristalalfred/spaghetti) to an
-[open-weave](https://github.com/kristalalfred/open-weave) control plane as a
+[open-connect](https://github.com/kristalalfred/open-connect) control plane as a
 node. The Mac's running apps become audio inputs, its output devices become
 outputs, and the hops the controller plans for it become spaghetti sources and
 routes.
@@ -20,11 +20,11 @@ This serves an installer on the LAN and prints the command to run on each Mac:
 curl -fsSL http://<lan-address>:29097/install.sh | bash
 ```
 
-Nodes join the open-weave bench southbound. Set `WEAVE_SOUTHBOUND_URL` and
-`WEAVE_SOUTHBOUND_KEY` to join another one, and pass `relay_network=<network>`
+Nodes join the open-connect bench southbound. Set `CONNECT_SOUTHBOUND_URL` and
+`CONNECT_SOUTHBOUND_KEY` to join another one, and pass `relay_network=<network>`
 to also dial a relay network. The installer runs the adapter as the LaunchAgent
-`com.open-weave.adapter-spaghetti` and logs to
-`~/Library/Logs/open-weave/adapter-spaghetti.log`. `just install` rebuilds the
+`com.open-connect.adapter-spaghetti` and logs to
+`~/Library/Logs/open-connect/adapter-spaghetti.log`. `just install` rebuilds the
 adapter and restarts this Mac's node.
 
 To run the adapter by hand, `just run <config>` takes a config like

@@ -3,10 +3,10 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.open-weave.adapter-spaghetti</string>
+    <string>com.open-connect.adapter-spaghetti</string>
     <key>CFBundleName</key>
-    <string>weave-adapter-spaghetti</string>
+    <string>connect-adapter-spaghetti</string>
     <key>NSLocalNetworkUsageDescription</key>
-    <string>The open-weave adapter reaches the open-weave control plane on your network.</string>
+    <string>The open-connect adapter reaches the open-connect control plane on your network.</string>
 </dict>
 </plist>

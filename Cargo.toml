@@ -1,18 +1,18 @@
 [package]
-name = "weave-adapter-spaghetti"
+name = "connect-adapter-spaghetti"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
 license = "MIT"
-repository = "https://github.com/kristalalfred/weave-adapter-spaghetti"
+repository = "https://github.com/kristalalfred/connect-adapter-spaghetti"
 readme = "README.md"
-description = "open-weave southbound adapter for the spaghetti macOS audio router."
+description = "open-connect southbound adapter for the spaghetti macOS audio router."
 keywords = ["audio", "srt", "webrtc", "macos", "spaghetti"]
 categories = ["multimedia::audio", "network-programming"]
 
 [dependencies]
-weave-core = { git = "https://github.com/kristalalfred/open-weave", branch = "main" }
-weave-reach = { git = "https://github.com/kristalalfred/open-weave", branch = "main" }
+connect-core = { git = "https://github.com/kristalalfred/open-connect", branch = "main" }
+connect-reach = { git = "https://github.com/kristalalfred/open-connect", branch = "main" }
 spaghetti-common = { git = "https://github.com/kristalalfred/spaghetti", branch = "master" }
 axum = "0.8"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal", "time", "io-util"] }

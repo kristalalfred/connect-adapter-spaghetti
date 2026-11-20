@@ -1,14 +1,14 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::time::{Duration, Instant};
 
+use connect_core::{
+    DesiredHop, EgressStatus, HopState, HopStatus, LinkCondition, LinkStats, LocalEnd, LocalSocket,
+    PayloadKind, PeerAttempt, PeerLinkId, PeerReport, PeerSocket, ResolvedAddr, SocketSpec,
+    SocketStatus, SrtSocket as ConnectSrt,
+};
 use spaghetti_common::ipc_protocol::{
     Destination, FlowState, FlowStatus, PeerRef, PeerRole, RouteInfo, SourceInfo, SourceSpec,
     SrtMode, SrtSocket, TapMode, TurnServer, WebRtcPeer,
-};
-use weave_core::{
-    DesiredHop, EgressStatus, HopState, HopStatus, LinkCondition, LinkStats, LocalEnd, LocalSocket,
-    PayloadKind, PeerAttempt, PeerLinkId, PeerReport, PeerSocket, ResolvedAddr, SocketSpec,
-    SocketStatus, SrtSocket as WeaveSrt,
 };
 
 use crate::inventory::Inventory;
@@ -18,7 +18,7 @@ pub const RECEIVER_PROFILE: &str = "srt-to-speaker";
 pub const WEBRTC_RECEIVER_PROFILE: &str = "webrtc-to-speaker";
 pub const MAX_SENDER_EGRESSES: usize = 8;
 
-const TAG_PREFIX: &str = "weave:";
+const TAG_PREFIX: &str = "connect:";
 const DEFAULT_LATENCY_MS: u32 = 200;
 const RATE_WINDOW_SECS: f64 = 0.2;
 const SRT_PASSPHRASE_CHARS: std::ops::RangeInclusive<usize> = 10..=79;
@@ -207,8 +207,8 @@ fn srt(socket: &SocketSpec) -> Result<SrtSocket, String> {
         return Err("this node takes SRT passphrases of 10 to 79 characters".into());
     }
     let mode = match socket {
-        WeaveSrt::Listen { port, .. } => SrtMode::Listen { port: *port },
-        WeaveSrt::Connect { host, port, .. } => SrtMode::Call {
+        ConnectSrt::Listen { port, .. } => SrtMode::Listen { port: *port },
+        ConnectSrt::Connect { host, port, .. } => SrtMode::Call {
             host: host.clone(),
             port: *port,
         },
@@ -638,11 +638,11 @@ enum Direction {
 
 fn resolved(socket: &SocketSpec) -> Option<ResolvedAddr> {
     match socket {
-        SocketSpec::Srt(WeaveSrt::Listen { port, .. }) => Some(ResolvedAddr {
+        SocketSpec::Srt(ConnectSrt::Listen { port, .. }) => Some(ResolvedAddr {
             host: "0.0.0.0".into(),
             port: *port,
         }),
-        SocketSpec::Srt(WeaveSrt::Connect { host, port, .. }) => Some(ResolvedAddr {
+        SocketSpec::Srt(ConnectSrt::Connect { host, port, .. }) => Some(ResolvedAddr {
             host: host.clone(),
             port: *port,
         }),
@@ -742,8 +742,8 @@ fn socket_status(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use connect_core::{DesiredEgress, HopRole, Passphrase, SrtParams, Track};
     use spaghetti_common::ipc_protocol::{AppInfo, SystemDeviceInfo};
-    use weave_core::{DesiredEgress, HopRole, Passphrase, SrtParams, Track};
 
     fn inventory() -> Inventory {
         Inventory::detect(
@@ -764,7 +764,7 @@ mod tests {
     }
 
     fn srt_connect(host: &str, port: u16) -> SocketSpec {
-        SocketSpec::Srt(WeaveSrt::Connect {
+        SocketSpec::Srt(ConnectSrt::Connect {
             host: host.into(),
             port,
             params: SrtParams {
@@ -778,7 +778,7 @@ mod tests {
 
     fn sender() -> DesiredHop {
         DesiredHop {
-            id: "weave-music-sender".into(),
+            id: "connect-music-sender".into(),
             node_id: "alfreds-mac".into(),
             profile_id: SENDER_PROFILE.into(),
             role: HopRole::Sender,
@@ -795,7 +795,7 @@ mod tests {
 
     fn receiver() -> DesiredHop {
         DesiredHop {
-            id: "weave-music-receiver-filip".into(),
+            id: "connect-music-receiver-filip".into(),
             node_id: "filips-mac".into(),
             profile_id: RECEIVER_PROFILE.into(),
             role: HopRole::Receiver,
@@ -824,27 +824,27 @@ mod tests {
     fn webrtc_socket(generation: u32) -> SocketSpec {
         SocketSpec::Webrtc(PeerSocket {
             attempt: PeerAttempt {
-                link: PeerLinkId::new("weave-music-receiver-filip"),
+                link: PeerLinkId::new("connect-music-receiver-filip"),
                 generation,
             },
             stun: vec!["stun.example:3478".into()],
-            turn: vec![weave_core::TurnServer {
+            turn: vec![connect_core::TurnServer {
                 address: "turn.example:3478".into(),
-                username: "1761386400:weave-music-receiver-filip".into(),
-                credential: weave_core::TurnCredential::new("c2VjcmV0"),
+                username: "1761386400:connect-music-receiver-filip".into(),
+                credential: connect_core::TurnCredential::new("c2VjcmV0"),
             }],
         })
     }
 
     fn webrtc_peer(generation: u32, role: PeerRole) -> WebRtcPeer {
         WebRtcPeer {
-            link: "weave-music-receiver-filip".into(),
+            link: "connect-music-receiver-filip".into(),
             generation,
             role,
             stun: vec!["stun.example:3478".into()],
             turn: vec![TurnServer {
                 address: "turn.example:3478".into(),
-                username: "1761386400:weave-music-receiver-filip".into(),
+                username: "1761386400:connect-music-receiver-filip".into(),
                 credential: "c2VjcmV0".into(),
             }],
         }
@@ -922,7 +922,7 @@ mod tests {
         assert_eq!(
             reported.peer,
             Some(PeerReport {
-                link: PeerLinkId::new("weave-music-receiver-filip"),
+                link: PeerLinkId::new("connect-music-receiver-filip"),
                 generation: 7,
                 relayed: true,
             })
@@ -936,7 +936,7 @@ mod tests {
         );
 
         refusals.refuse(PeerAttempt {
-            link: PeerLinkId::new("weave-music-receiver-filip"),
+            link: PeerLinkId::new("connect-music-receiver-filip"),
             generation: 7,
         });
         refusals.retain(std::slice::from_ref(&hop));
@@ -1045,10 +1045,10 @@ mod tests {
         foreign.profile_id = "srt-forward".into();
         assert!(plan(&foreign, &inventory()).is_err());
         let mut timed = receiver();
-        timed.ingress = SocketSpec::Srt(WeaveSrt::Listen {
+        timed.ingress = SocketSpec::Srt(ConnectSrt::Listen {
             port: 23000,
             params: SrtParams {
-                payload: PayloadKind::WeaveTimedV1,
+                payload: PayloadKind::ConnectTimedV1,
                 ..SrtParams::default()
             },
         });
@@ -1066,12 +1066,12 @@ mod tests {
         let wanted = plan(&hop, &inventory()).unwrap();
         let (current, current_routes) = built(&hop, &wanted, 1, 0);
         let missing = DesiredHop {
-            id: "weave-music-2-sender".into(),
+            id: "connect-music-2-sender".into(),
             ..sender()
         };
         let (unwanted, _) = built(
             &DesiredHop {
-                id: "weave-old-sender".into(),
+                id: "connect-old-sender".into(),
                 ..sender()
             },
             &wanted,
@@ -1289,7 +1289,7 @@ mod tests {
         assert_eq!(
             refused.egresses[1].status.peer,
             Some(PeerReport {
-                link: PeerLinkId::new("weave-music-receiver-filip"),
+                link: PeerLinkId::new("connect-music-receiver-filip"),
                 generation: 7,
                 relayed: false,
             })
@@ -1299,7 +1299,7 @@ mod tests {
     #[test]
     fn a_passphrase_srt_cannot_use_fails_the_hop() {
         let mut hop = sender();
-        hop.egresses[0].socket = SocketSpec::Srt(WeaveSrt::Connect {
+        hop.egresses[0].socket = SocketSpec::Srt(ConnectSrt::Connect {
             host: "192.168.1.30".into(),
             port: 23000,
             params: SrtParams {

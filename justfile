@@ -1,7 +1,7 @@
-label := "com.open-weave.adapter-spaghetti"
-node_config := home_directory() / "Library/Application Support/open-weave/spaghetti-node.yaml"
+label := "com.open-connect.adapter-spaghetti"
+node_config := home_directory() / "Library/Application Support/open-connect/spaghetti-node.yaml"
 northbound := "http://localhost:29080"
-northbound_auth := "Authorization: Bearer " + env("WEAVE_NORTHBOUND_TOKEN", "bench-northbound-token")
+northbound_auth := "Authorization: Bearer " + env("CONNECT_NORTHBOUND_TOKEN", "bench-northbound-token")
 
 default:
     @just --list
@@ -31,22 +31,22 @@ install:
     plist="$HOME/Library/LaunchAgents/{{label}}.plist"
     [ -f "$plist" ] || { echo "this Mac has no installed node; install one with the script 'just installer' serves" >&2; exit 1; }
     cargo build --release --quiet
-    codesign --force --sign - target/release/weave-adapter-spaghetti 2>/dev/null
-    install -m 755 target/release/weave-adapter-spaghetti "$HOME/.local/bin/weave-adapter-spaghetti.new"
-    mv -f "$HOME/.local/bin/weave-adapter-spaghetti.new" "$HOME/.local/bin/weave-adapter-spaghetti"
+    codesign --force --sign - target/release/connect-adapter-spaghetti 2>/dev/null
+    install -m 755 target/release/connect-adapter-spaghetti "$HOME/.local/bin/connect-adapter-spaghetti.new"
+    mv -f "$HOME/.local/bin/connect-adapter-spaghetti.new" "$HOME/.local/bin/connect-adapter-spaghetti"
     launchctl kickstart -k "gui/$(id -u)/{{label}}"
-    echo "restarted {{label}}; logs in ~/Library/Logs/open-weave/adapter-spaghetti.log"
+    echo "restarted {{label}}; logs in ~/Library/Logs/open-connect/adapter-spaghetti.log"
 
-[doc("Serve the node installer to the LAN; each Mac that runs it joins as a node named after its user and also dials <relay_network> when set. Nodes join the open-weave bench southbound, or the one in WEAVE_SOUTHBOUND_URL with the key in WEAVE_SOUTHBOUND_KEY.")]
+[doc("Serve the node installer to the LAN; each Mac that runs it joins as a node named after its user and also dials <relay_network> when set. Nodes join the open-connect bench southbound, or the one in CONNECT_SOUTHBOUND_URL with the key in CONNECT_SOUTHBOUND_KEY.")]
 installer port="29097" relay_network="":
     #!/usr/bin/env bash
     set -euo pipefail
-    southbound="${WEAVE_SOUTHBOUND_URL:-}"
+    southbound="${CONNECT_SOUTHBOUND_URL:-}"
     if [ -n "$southbound" ]; then
         [[ "$southbound" =~ ^https?://[^[:space:]]+$ ]] \
-            || { echo "WEAVE_SOUTHBOUND_URL $southbound is not an http or https URL" >&2; exit 1; }
-        [ -n "${WEAVE_SOUTHBOUND_KEY:-}" ] \
-            || { echo "WEAVE_SOUTHBOUND_URL is set without WEAVE_SOUTHBOUND_KEY: set the key of that southbound" >&2; exit 1; }
+            || { echo "CONNECT_SOUTHBOUND_URL $southbound is not an http or https URL" >&2; exit 1; }
+        [ -n "${CONNECT_SOUTHBOUND_KEY:-}" ] \
+            || { echo "CONNECT_SOUTHBOUND_URL is set without CONNECT_SOUTHBOUND_KEY: set the key of that southbound" >&2; exit 1; }
     fi
     relay="{{relay_network}}"
     if [ -n "$relay" ]; then
@@ -72,16 +72,16 @@ installer port="29097" relay_network="":
     if [ -z "$southbound" ]; then
         southbound="http://$(scutil --get LocalHostName | tr '[:upper:]' '[:lower:]').local:29081"
         address="$lan"
-        WEAVE_SOUTHBOUND_KEY="${WEAVE_SOUTHBOUND_KEY:-bench-southbound-key-for-local-use-only}"
+        CONNECT_SOUTHBOUND_KEY="${CONNECT_SOUTHBOUND_KEY:-bench-southbound-key-for-local-use-only}"
     fi
     dir="$(mktemp -d)"; trap 'rm -rf "$dir"' EXIT
     mkdir "$dir/node"
-    cp "$daemon" "$(dirname "$daemon")/spaghetti" target/release/weave-adapter-spaghetti "$dir/node/"
-    codesign --force --sign - "$dir/node/spaghettid" "$dir/node/weave-adapter-spaghetti" 2>/dev/null
+    cp "$daemon" "$(dirname "$daemon")/spaghetti" target/release/connect-adapter-spaghetti "$dir/node/"
+    codesign --force --sign - "$dir/node/spaghettid" "$dir/node/connect-adapter-spaghetti" 2>/dev/null
     COPYFILE_DISABLE=1 tar --no-mac-metadata -czf "$dir/node.tar.gz" -C "$dir/node" .
     rm -rf "$dir/node"
     BUNDLE_URL="http://$lan:{{port}}/node.tar.gz" SOUTHBOUND_URL="$southbound" \
-        SOUTHBOUND_ADDRESS="$address" SOUTHBOUND_KEY="$WEAVE_SOUTHBOUND_KEY" RELAY_NETWORK="$relay" \
+        SOUTHBOUND_ADDRESS="$address" SOUTHBOUND_KEY="$CONNECT_SOUTHBOUND_KEY" RELAY_NETWORK="$relay" \
         perl -pe 's/__(BUNDLE_URL|SOUTHBOUND_URL|SOUTHBOUND_ADDRESS|SOUTHBOUND_KEY|RELAY_NETWORK)__/$ENV{$1}/g' \
         install.sh >"$dir/install.sh"
     echo "nodes join the southbound at $southbound"

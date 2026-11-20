@@ -7,10 +7,10 @@ southbound_address="__SOUTHBOUND_ADDRESS__"
 southbound_key="__SOUTHBOUND_KEY__"
 relay_network="__RELAY_NETWORK__"
 bin="$HOME/.local/bin"
-support="$HOME/Library/Application Support/open-weave"
-logs="$HOME/Library/Logs/open-weave"
+support="$HOME/Library/Application Support/open-connect"
+logs="$HOME/Library/Logs/open-connect"
 agents="$HOME/Library/LaunchAgents"
-label="com.open-weave.adapter-spaghetti"
+label="com.open-connect.adapter-spaghetti"
 plist="$agents/$label.plist"
 config="$support/spaghetti-node.yaml"
 log="$logs/adapter-spaghetti.log"
@@ -32,13 +32,13 @@ place() {
 
 uninstall() {
     launchctl bootout "$domain/$label" 2>/dev/null || true
-    rm -f "$plist" "$bin/weave-adapter-spaghetti"
+    rm -f "$plist" "$bin/connect-adapter-spaghetti"
     rm -rf "$support" "$logs"
     if [ "$(spaghetti_daemon)" = "$bin/spaghettid" ]; then
         "$bin/spaghetti" daemon uninstall >/dev/null
         rm -f "$bin/spaghetti" "$bin/spaghettid"
     fi
-    say "removed the open-weave spaghetti node"
+    say "removed the open-connect spaghetti node"
 }
 
 check_platform() {
@@ -130,7 +130,7 @@ write_agent() {
     <string>$label</string>
     <key>ProgramArguments</key>
     <array>
-        <string>$bin/weave-adapter-spaghetti</string>
+        <string>$bin/connect-adapter-spaghetti</string>
         <string>--config</string>
         <string>$config</string>
     </array>
@@ -215,8 +215,8 @@ main() {
 
     install_spaghetti "$work"
 
-    say "installing the open-weave adapter"
-    place "$work/weave-adapter-spaghetti" "$bin/weave-adapter-spaghetti"
+    say "installing the open-connect adapter"
+    place "$work/connect-adapter-spaghetti" "$bin/connect-adapter-spaghetti"
     write_config "$node" "$(node_token "$node")"
     write_agent
     touch "$log"
@@ -231,7 +231,7 @@ main() {
         "$spaghetti" unsource "$probe" >/dev/null 2>&1 || true
     done
 
-    say "$node is on open-weave with $registered"
+    say "$node is on open-connect with $registered"
     echo "logs:      $log"
     echo "uninstall: curl -fsSL ${bundle_url%/*}/install.sh | bash -s uninstall"
 }

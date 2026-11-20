@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use connect_core::{NodeInput, NodeOutput, RESOURCE_ID_MAX_LEN, Track};
 use spaghetti_common::ipc_protocol::{AppInfo, SystemDeviceInfo};
-use weave_core::{NodeInput, NodeOutput, RESOURCE_ID_MAX_LEN, Track};
 
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Inventory {
@@ -232,7 +232,7 @@ mod tests {
         ];
         let inventory = Inventory::detect(&[], &all, "/Users/alfred");
         for output in &inventory.outputs {
-            weave_core::validate_resource_id(&output.id).unwrap();
+            connect_core::validate_resource_id(&output.id).unwrap();
             assert!(!output.label.trim().is_empty(), "{output:?}");
         }
         let ids: BTreeSet<&str> = inventory.outputs.iter().map(|o| o.id.as_str()).collect();

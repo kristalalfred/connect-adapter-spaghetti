@@ -245,7 +245,7 @@ pub mod fake {
 
     pub fn daemon(replies: Vec<Value>) -> (SpaghettiClient, JoinHandle<Vec<Value>>) {
         let dir = std::env::temp_dir().join(format!(
-            "weave-adapter-{}-{}",
+            "connect-adapter-{}-{}",
             std::process::id(),
             NEXT.fetch_add(1, Ordering::Relaxed)
         ));
@@ -289,7 +289,7 @@ mod tests {
             json!({ "Sources": [{
                 "source_id": 4,
                 "spec": { "Tap": { "pids": [731], "mode": "Mirror" } },
-                "tag": "weave:hop",
+                "tag": "connect:hop",
                 "label": "Music",
                 "status": { "state": "Flowing", "bytes": 64, "peer": null, "relayed": false, "packets_lost": 0, "packets_retransmitted": 0 },
                 "local_description": null
@@ -301,7 +301,7 @@ mod tests {
             pids: vec![731],
             mode: TapMode::Mirror,
         };
-        assert_eq!(client.create_source(&tap, "weave:hop").await.unwrap(), 4);
+        assert_eq!(client.create_source(&tap, "connect:hop").await.unwrap(), 4);
         let destination = Destination::Srt(SrtSocket {
             mode: SrtMode::Call {
                 host: "10.0.0.2".into(),
@@ -323,7 +323,7 @@ mod tests {
         let seen = daemon.await.unwrap();
         assert_eq!(
             seen[0],
-            json!({ "CreateSource": { "source": { "Tap": { "pids": [731], "mode": "Mirror" } }, "tag": "weave:hop" } })
+            json!({ "CreateSource": { "source": { "Tap": { "pids": [731], "mode": "Mirror" } }, "tag": "connect:hop" } })
         );
         assert_eq!(
             seen[1]["CreateRoute"]["destination"]["Srt"]["mode"],
